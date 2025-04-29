@@ -16,6 +16,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import springfox.documentation.swagger.web.InMemorySwaggerResourcesProvider;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,6 +34,7 @@ public class EmployeeController {
     private EmployeeService employeeService;
     @Autowired
     private JwtProperties jwtProperties;
+    private InMemorySwaggerResourcesProvider inMemorySwaggerResourcesProvider;
 
     /**
      * 登录
@@ -107,6 +109,20 @@ public class EmployeeController {
     public Result startOrStop(@PathVariable int status, Long id) {
         log.info("start or stop an employee with status:{}, id:{}", status, id);
         employeeService.startOrStop(status, id);
+        return Result.success();
+    }
+
+    @ApiOperation(value = "get employee info by id")
+    @GetMapping("/{id}")
+    public Result getById(@PathVariable Long id) {
+        Employee employee = employeeService.getById(id);
+        return Result.success(employee);
+    }
+
+    @ApiOperation(value = "update employee info")
+    @PutMapping
+    public Result update(@RequestBody EmployeeDTO employeeDTO) {
+        employeeService.update(employeeDTO);
         return Result.success();
     }
 
