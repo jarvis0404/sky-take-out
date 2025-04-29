@@ -29,4 +29,10 @@ public interface EmployeeMapper {
      * @return Page(Arraylist)
      */
     Page<Employee> pageQuery(EmployeePageQueryDTO employeePageQueryDTO);
+
+    /**
+     * dynamic sql
+     * @param emp data
+     */
+    void update(Employee emp);
 }
