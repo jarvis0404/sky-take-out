@@ -1,0 +1,1 @@
+lack of alioss secret id in application-env.yml
