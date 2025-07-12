@@ -46,8 +46,8 @@ public class OrderTask {
     /**
      * handle delivery orders at 1am per day
      */
-    // @Scheduled(cron = "0 0 1 * * ?")
-    @Scheduled(cron = "0/5 * * * * ?")
+    @Scheduled(cron = "0 0 1 * * ?")
+    // @Scheduled(cron = "0/5 * * * * ?") // test functionality
     public void handleDeliveryOrders() {
         log.info("handle delivery orders, {}", LocalDateTime.now());
 
