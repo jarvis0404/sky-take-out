@@ -1,1 +1,2 @@
-lack of alioss secret id in application-env.yml
+## notes
+lack of application-env.yml
