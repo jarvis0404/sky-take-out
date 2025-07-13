@@ -7,6 +7,7 @@ import org.springframework.core.annotation.Order;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface OrderMapper {
@@ -31,4 +32,12 @@ public interface OrderMapper {
 
     @Select("select * from orders where id = #{id}")
     Orders getById(Integer id);
+
+    /**
+     * sum by map
+     * @param map conditions
+     * @return amount sum
+     */
+    Double sumByMap(Map map);
+
 }
