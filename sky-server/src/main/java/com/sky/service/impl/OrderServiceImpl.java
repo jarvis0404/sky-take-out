@@ -18,6 +18,7 @@ import com.sky.vo.OrderSubmitVO;
 import com.sky.websocket.WebSocketServer;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -158,6 +159,22 @@ public class OrderServiceImpl implements OrderService {
 
         String json = JSON.toJSONString(map);
         webSocketServer.sendToAllClient(json);
+    }
+
+    @Override
+    public void reminder(Integer id) {
+        Orders orderDB = orderMapper.getById(id);
+
+        if (orderDB == null) {
+            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
+        }
+
+        Map map = new HashMap();
+        map.put("type", 2);
+        map.put("orderId", id);
+        map.put("content", "订单号：" + orderDB.getNumber());
+
+        webSocketServer.sendToAllClient(JSON.toJSONString(map));
     }
 
 }

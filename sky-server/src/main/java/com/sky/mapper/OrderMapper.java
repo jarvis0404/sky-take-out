@@ -3,6 +3,7 @@ package com.sky.mapper;
 import com.sky.entity.Orders;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
+import org.springframework.core.annotation.Order;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,4 +29,6 @@ public interface OrderMapper {
     @Select("select * from orders where status = #{status} and order_time < #{timeLT}")
     List<Orders> getOrdersByStatusAndOrderTimeLT(Integer status, LocalDateTime timeLT);
 
+    @Select("select * from orders where id = #{id}")
+    Orders getById(Integer id);
 }

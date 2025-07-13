@@ -40,4 +40,15 @@ public class OrderController {
         return Result.success(orderPaymentVO);
     }
 
+    /**
+     * users urge for platforms
+     * @param id order id in database
+     * @return success Result
+     */
+    @GetMapping("/reminder/{id}")
+    public Result reminder(@PathVariable("id") Integer id) {
+        orderService.reminder(id);
+        return Result.success();
+    }
+
 }
