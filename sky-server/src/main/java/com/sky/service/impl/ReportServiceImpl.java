@@ -6,16 +6,21 @@ import com.sky.entity.Orders;
 import com.sky.mapper.OrderMapper;
 import com.sky.mapper.UserMapper;
 import com.sky.service.ReportService;
-import com.sky.vo.OrderReportVO;
-import com.sky.vo.SalesTop10ReportVO;
-import com.sky.vo.TurnoverReportVO;
-import com.sky.vo.UserReportVO;
+import com.sky.service.WorkspaceService;
+import com.sky.vo.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.LocaleEditor;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -30,6 +35,8 @@ public class ReportServiceImpl implements ReportService {
     private OrderMapper orderMapper;
     @Autowired
     private UserMapper userMapper;
+    @Autowired
+    private WorkspaceService workspaceService;
 
     /**
      * hao: get turnover statistics
@@ -177,6 +184,61 @@ public class ReportServiceImpl implements ReportService {
                 .nameList(StringUtils.join(nameList, ","))
                 .numberList(StringUtils.join(numberList, ","))
                 .build();
+    }
+
+    @Override
+    public void exportBusinessData(HttpServletResponse response) {
+        // 1. prepare data to fill in
+        LocalDate beginDate = LocalDate.now().minusDays(30);
+        LocalDate endDate = LocalDate.now().minusDays(1);
+        BusinessDataVO businessData = workspaceService.getBusinessData(LocalDateTime.of(beginDate, LocalTime.MIN), LocalDateTime.of(endDate, LocalTime.MAX));
+
+        // 2. write data to Excel file through Apache POI
+        InputStream in = this.getClass().getClassLoader().getResourceAsStream("template/运营数据报表模板.xlsx");
+
+        try {
+            // get Excel workbook object
+            XSSFWorkbook wb = new XSSFWorkbook(in);
+
+            // get sheet object
+            XSSFSheet sheet = wb.getSheetAt(0);
+
+            // write data
+            sheet.getRow(1).getCell(1).setCellValue("time: " + beginDate + "~" + endDate);
+
+            XSSFRow row = sheet.getRow(3);
+            row.getCell(2).setCellValue(businessData.getTurnover());
+            row.getCell(4).setCellValue(businessData.getOrderCompletionRate());
+            row.getCell(6).setCellValue(businessData.getNewUsers());
+
+            row = sheet.getRow(4);
+            row.getCell(2).setCellValue(businessData.getValidOrderCount());
+            row.getCell(4).setCellValue(businessData.getUnitPrice());
+
+            for (int i = 0; i < 30; i++) {
+                LocalDate date = beginDate.plusDays(i);
+
+                BusinessDataVO dailyBusinessData = workspaceService.getBusinessData(LocalDateTime.of(date, LocalTime.MIN), LocalDateTime.of(date, LocalTime.MAX));
+                row = sheet.getRow(7 + i);
+                row.getCell(1).setCellValue(date.toString());
+                row.getCell(2).setCellValue(dailyBusinessData.getTurnover());
+                row.getCell(3).setCellValue(dailyBusinessData.getValidOrderCount());
+                row.getCell(4).setCellValue(dailyBusinessData.getOrderCompletionRate());
+                row.getCell(5).setCellValue(dailyBusinessData.getUnitPrice());
+                row.getCell(6).setCellValue(dailyBusinessData.getNewUsers());
+            }
+
+            // 3. write to http response output stream
+            ServletOutputStream out = response.getOutputStream();
+            wb.write(out);
+
+            // close
+            out.close();
+            wb.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     private Integer getOrderCount(LocalDateTime begin, LocalDateTime end, Integer status) {
